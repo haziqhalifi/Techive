@@ -95,8 +95,10 @@ Vite + React 19 console  ──HTTP──▶  Express + TypeScript API  ──�
 ```
 
 The data layer is **in-memory by default** — one process, one seeded world, no external services
-required to run the demo. `data/schema.sql` holds the equivalent durable Postgres + pgvector schema
-for the production path, which is not yet wired to the API (see [Known gaps](#known-gaps)).
+required to run the demo. The durable path is a faithful projection of the same model:
+`data/schema.sql` (Postgres + pgvector) plus `data/seed.sql`, which is generated from the same
+deterministic world so it cannot drift. Neither is wired to the API yet (see
+[Known gaps](#known-gaps)).
 
 ### Determinism contract
 
@@ -327,7 +329,7 @@ Errors always leave in one shape, which is also what the console's error panel r
 
 ## Testing
 
-74 tests across 7 files, all deterministic and offline (`LLM_ENABLED=false`):
+94 tests across 9 files, all deterministic and offline (`LLM_ENABLED=false`):
 
 | File | Tests | Covers |
 |---|---|---|
@@ -338,6 +340,8 @@ Errors always leave in one shape, which is also what the console's error panel r
 | `cases.test.ts` | 10 | End-to-end pipeline, gate halt, FR-09 transfer block |
 | `determinism.test.ts` | 4 | Seeded world reproducibility; `Math.random` is never called |
 | `api.test.ts` | 14 | HTTP surface, the error envelope, access control |
+| `sql-export.test.ts` | 13 | SQL escaping, and the drift guard proving `data/seed.sql` matches the code |
+| `seed-sql.test.ts` | 7 | Schema↔seed coherence, the storage-layer constraints, and that the seeded world satisfies them |
 
 ```bash
 cd backend && npx vitest run
@@ -354,13 +358,16 @@ bash scripts/verify.sh
 ```
 
 Backend: `tsc --noEmit` · `eslint` · `vitest run`. Frontend: `tsc --noEmit` · `eslint` ·
-`vite build`. `docker compose config -q` validates the optional Postgres path.
+`vite build`. `docker compose config -q` validates the compose file, and `scripts/db-smoke.sh`
+applies the schema + seed to a real Postgres to assert the row counts and the append-only
+trigger — it self-skips when Docker is unavailable.
 
 Observed on the current tree:
 
 ```
-backend   tsc ✔   eslint ✔   vitest ✔   74/74 tests passed (7 files)
-frontend  tsc ✔   eslint ✔   vite build ✔   372 kB → 111 kB gzip
+backend   tsc ✔   eslint ✔   vitest ✔   94/94 tests passed (9 files)
+frontend  tsc ✔   eslint ✔   vite build ✔   373 kB → 111 kB gzip
+db smoke  ✔ (skipped locally — no Docker; executed by CI)
 compose   config valid
 ✅ verify passed
 ```
@@ -385,20 +392,20 @@ End-to-end checks against the running API:
 
 | Layer | Choice | Why |
 |---|---|---|
-| API | Express 5 + TypeScript (strict) | One language across the stack; the domain types are the wire types |
+| API | Express 4 + TypeScript (strict) | One language across the stack; the domain types are the wire types |
 | Validation | Zod at every route boundary | The request contract is enforced before a service is called |
 | Store | In-memory, seeded | The demo runs with zero external services; determinism is trivially provable |
-| Durable path | Postgres 15 + pgvector (`data/schema.sql`) | Modelled for production, deliberately unwired (see [Known gaps](#known-gaps)) |
+| Durable path | Postgres 15 + pgvector (`data/schema.sql`, `data/seed.sql`) | Mirrors the domain model; the seed is generated from the same world and guarded against drift. Deliberately unwired (see [Known gaps](#known-gaps)) |
 | Console | Vite + React 19 + Tailwind v3 + react-router-dom 7 | Fast dev loop; hand-written primitives keep the dependency surface small |
 | Determinism | `mulberry32` + `VERDANT_SEED` | A settable clock and seeded RNG mean the same input always yields the same world |
-| CI | GitHub Actions | Lint, typecheck, test, build, compose-config |
+| CI | GitHub Actions | Lint, typecheck, test, build, compose-config, and a `db-smoke` job that executes the schema + seed against Postgres |
 
 ---
 
 ## Repository layout
 
 ```
-backend/    Express + TypeScript API: deterministic services, 8-node pipeline, 74 tests
+backend/    Express + TypeScript API: deterministic services, 8-node pipeline, 94 tests
   src/
     modules/    analytics, assets, audit, cases, governance, pills, synthetic
     shared/     store, hash chain, RNG, errors, HTTP helpers
@@ -410,8 +417,10 @@ frontend/   Vite + React 19 console
     lib/        verdant-api (the only fetch), utils
     hooks/      use-role (role context + permission checks)
 data/       schema.sql — the durable Postgres + pgvector schema (optional path, not yet wired)
+            seed.sql   — GENERATED inserts for the seeded world (`npm run seed:sql`), drift-guarded
 docs/       ARCHITECTURE, DECISIONS (ADRs), HERO_CASE, CODEBUDDY_LOG
 scripts/    verify.sh — the single quality gate
+            db-smoke.sh — applies schema + seed to a throwaway Postgres (self-skips without Docker)
 ```
 
 ---
@@ -435,9 +444,10 @@ scripts/    verify.sh — the single quality gate
 
 ## Known gaps
 
-- **The Postgres path is defined but not wired.** `data/schema.sql` holds the durable schema and
-  `docker-compose.yml` can start pgvector, but the API reads and writes the in-memory store only.
-  It has therefore not been smoke-tested end-to-end.
+- **The Postgres path is defined but not wired.** `data/schema.sql` and the generated
+  `data/seed.sql` hold the durable schema and its data, and `docker-compose.yml` can start pgvector,
+  but the API reads and writes the in-memory store only. The SQL is cross-checked structurally by
+  tests and executed by the CI `db-smoke` job, but the API has never read from it end-to-end.
 - **pgvector semantic retrieval is not implemented.** `transcript_excerpts.embedding` is modelled as
   `vector(1536)`; retrieval is currently weighted token overlap, which is what the eval scores.
 - **No auth.** Roles are asserted from a request header, not a verified JWT.

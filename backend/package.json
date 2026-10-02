@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "seed:sql": "tsx src/scripts/export-seed-sql.ts",
+    "seed:sql:stdout": "tsx src/scripts/export-seed-sql.ts --stdout"
   },
   "dependencies": {
     "cors": "^2.8.5",

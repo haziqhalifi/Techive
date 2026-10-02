@@ -1,0 +1,7 @@
+# data/seed.sql is a generated artifact whose bytes are asserted by a test, so git must not
+# rewrite its line endings on checkout — core.autocrlf would otherwise break the drift guard
+# on Windows while passing on Linux.
+data/*.sql text eol=lf
+
+# Shell scripts are executed by bash on Linux CI and in Git Bash on Windows.
+*.sh text eol=lf

@@ -2,13 +2,18 @@
 #
 # The API does NOT need this. By default VERDANT runs entirely in memory: the world is seeded
 # from a fixed RNG seed on boot and nothing external is required. This compose file exists to
-# stand up the durable Postgres + pgvector schema in `data/schema.sql` for the production path.
+# stand up the durable Postgres + pgvector schema in `data/schema.sql`, populated by the
+# generated `data/seed.sql`.
 #
 #   docker compose --profile postgres up -d db
 #   docker compose --profile postgres down -v      # wipe the volume
 #
-# The schema is applied only when the data volume is EMPTY. After editing data/schema.sql:
+# Schema and seed are applied only when the data volume is EMPTY. After editing data/schema.sql,
+# or after regenerating data/seed.sql (`cd backend && npm run seed:sql`):
 #   docker compose --profile postgres down -v && docker compose --profile postgres up -d db
+#
+# `data/seed.sql` is a generated artifact and MUST exist before `up` — a bind mount of a missing
+# file becomes a directory and initdb silently skips it.
 #
 # NOTE: this database is not yet read or written by the API. See "Known gaps" in README.md.
 
@@ -28,7 +33,9 @@ services:
       - "5433:5432"
     volumes:
       - verdant_pgdata:/var/lib/postgresql/data
+      # initdb runs these in lexical order: schema first, then the seed.
       - ./data/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./data/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U verdant -d verdant"]
       interval: 5s

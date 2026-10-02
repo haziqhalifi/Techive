@@ -35,6 +35,7 @@
 | 2026-10-02 | CodeBuddy | Pivoted to Express + TypeScript + in-memory store; built 49 files / ~4,900 lines with 74 tests | `git log`, `backend/src/**` |
 | 2026-10-02 | CodeBuddy | Fixed the slug/title mismatch found by the retrieval eval; added a seed-time guard | `backend/src/modules/synthetic/seed.controller.ts` |
 | 2026-10-02 | CodeBuddy | Verified end to end: hero card, gate escalation, transfer block, 403 on audit, eval 1.0 | `docs/HERO_CASE.md` |
+| 2026-10-02 | CodeBuddy | Found `data/schema.sql` had silently drifted from the model after the pivot (wrong enums, missing `sites`/`assets`/readings tables) and reconciled it; added a generated `data/seed.sql` with a drift-guard test, plus a CI `db-smoke` job so the SQL is executed somewhere | `data/schema.sql`, `data/seed.sql`, `scripts/db-smoke.sh` |
 
 ## WorkBuddy
 
@@ -47,11 +48,11 @@ the proof, not the tool choice.
 Independent of screenshots, the repository itself evidences the build:
 
 - `git log` — the scaffold commit, then the pivot.
-- `backend/src/__tests__/` — 74 tests: gate recall, audit tamper detection, FR-02/FR-03 governance,
-  pipeline exits, determinism, and the HTTP surface.
+- `backend/src/__tests__/` — 94 tests: gate recall, audit tamper detection, FR-02/FR-03 governance,
+  pipeline exits, determinism, the HTTP surface, SQL escaping, and the schema↔seed drift guard.
 - `backend/src/modules/pills/eval.service.ts` + `synthetic/tickets.dataset.ts` — the retrieval eval,
   with deliberately colliding pills so it has to discriminate.
 - `backend/src/modules/cases/gate.service.ts` + `tickets.dataset.ts::GATE_POSITIVE_FIXTURES` — the
   FR-08 gate and its recall fixture.
 - `.github/workflows/ci.yml` — the gate that runs on every push.
-- `docs/DECISIONS.md` — the reasoning behind eleven architectural choices.
+- `docs/DECISIONS.md` — the reasoning behind twelve architectural choices.

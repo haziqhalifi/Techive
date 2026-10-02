@@ -8,8 +8,9 @@ lost. Each has a **Why** so a future reader can judge whether it still applies.
 ## ADR-001 — The in-memory store is the primary data layer; Postgres is the durable path
 
 **Decision.** `shared/store.ts` holds one mutable `StoreState` in process memory, seeded from a fixed
-RNG seed on boot. `data/schema.sql` holds the equivalent Postgres + pgvector schema, and
-`docker-compose.yml` can start it under a `postgres` profile — but the API does not read or write it.
+RNG seed on boot. `data/schema.sql` holds the equivalent Postgres + pgvector schema and
+`data/seed.sql` the generated data to fill it, and `docker-compose.yml` can start both under a
+`postgres` profile — but the API does not read or write either.
 
 **Why.** The demo's value is in the governance model, not the database driver. An in-memory store
 means `npm install && npm run dev` produces a complete, populated system with no external service, no
@@ -17,7 +18,9 @@ credentials and no network. It also makes the test suite fast and fully determin
 lets the determinism contract actually be enforced in CI rather than asserted in a README.
 
 **How to apply.** The Postgres path is a real commitment, not a gesture: `data/schema.sql` is
-maintained and carries the FR-02 and append-only constraints at the storage layer. If you wire it up,
+maintained, mirrors the domain model, and carries the FR-02, FR-03 and append-only constraints at
+the storage layer, while `data/seed.sql` is generated from the same world so the two cannot drift
+(ADR-012). If you wire it up,
 the repository interfaces in each module (`asset.repository.ts`, `pill.repository.ts`,
 `case.repository.ts`, `audit.service.ts`) are the seam — they are already the only code that touches
 collections directly. Until then, be honest in the README that it is unwired.
@@ -193,9 +196,40 @@ styling ever "disappears".
 
 ---
 
+## ADR-012 — The durable schema mirrors the model, and the seed is generated
+
+**Decision.** `data/schema.sql` is a hand-written projection of the TypeScript domain types, and
+`data/seed.sql` is a **generated** artifact: `renderSeedSql` in
+`modules/synthetic/sql-export.ts` runs `runSeed()` and serialises the resulting `StoreState`.
+`npm run seed:sql` regenerates it; a test re-renders it in memory and asserts the committed file is
+byte-identical.
+
+**Why.** The schema was retained from a deleted FastAPI iteration and had drifted completely — the
+`claim_kind` enum said `fact/interpretation/action` where the model says `measured/derived/assumed`,
+`pill_versions` was nine untyped `jsonb` blobs where the model has typed fields, and the `sites`,
+`assets` and 1,344 chiller readings the store actually holds had no tables at all. A schema that
+describes a different system is worse than no schema, because it looks authoritative. The same
+argument applies to a hand-written seed: it would drift on the first dataset edit, and nothing would
+notice. Generating the seed from the same deterministic world makes drift structurally impossible —
+if the data changes, the committed file no longer matches and the test fails.
+
+**How to apply.** Never hand-edit `data/seed.sql`; run `npm run seed:sql` and commit the result.
+Change `VERDANT_SEED` only if you intend to regenerate it. Three conventions keep the pair
+checkable, and a test parses both files to enforce them: one column or constraint per line in
+`schema.sql`, an explicit column list on every seed `INSERT`, and an expected-columns fixture that
+covers the tables the seed leaves empty. Two deliberate deviations from a literal mirror are worth
+knowing: `pill_versions.claim_ids` is **not** stored (it is derivable from `claims`, and nothing
+reads it), and `audit_logs.payload` is `json` rather than `jsonb` so the stored literal is exactly
+what the hash committed to. What the database deliberately does *not* enforce — that a cited quote
+literally appears in the transcript, that the reviewer held `pill_reviewer`, and re-derivation of
+the chain — stays in `pill.service.ts` and `shared/hash.ts`.
+
+---
+
 ## Known gaps
 
-- The Postgres + pgvector path is defined (`data/schema.sql`) but not wired to the API (ADR-001).
+- The Postgres + pgvector path is defined and populated (`data/schema.sql`, `data/seed.sql`) but not
+  wired to the API (ADR-001).
 - pgvector semantic retrieval is modelled but not implemented; retrieval is weighted token overlap.
 - No auth: roles come from a request header, not a verified JWT. `assertCan` is the real gate.
 - Outcomes are recorded but not fed back into a proposed revision automatically.

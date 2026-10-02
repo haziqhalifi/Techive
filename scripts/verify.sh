@@ -5,10 +5,11 @@
 #
 #   bash scripts/verify.sh
 #
+# Compose:  docker compose config -q -> db-smoke.sh (self-skips without Docker)
 # Backend:  tsc --noEmit -> eslint -> vitest run
 # Frontend: tsc --noEmit -> eslint -> vite build
 #
-# Both are skipped with a clear message if dependencies are not installed yet.
+# Each is skipped with a clear message if its prerequisites are not available.
 # =============================================================
 set -uo pipefail
 
@@ -29,7 +30,11 @@ run() { # run <label> <workdir> <command...>
 step "docker compose config"
 run "compose config valid" "$ROOT" docker compose config -q
 
-# --- 2. backend -------------------------------------------------------------
+# --- 2. live Postgres smoke test (self-skips when Docker is unavailable) ----
+step "db smoke (schema + seed)"
+run "db smoke" "$ROOT" bash scripts/db-smoke.sh
+
+# --- 3. backend -------------------------------------------------------------
 if [ -d "$ROOT/backend/node_modules" ]; then
   step "backend: tsc --noEmit"
   run "tsc" "$ROOT/backend" npx tsc --noEmit
@@ -43,7 +48,7 @@ else
   skip "backend/node_modules missing — run: cd backend && npm install"
 fi
 
-# --- 3. frontend ------------------------------------------------------------
+# --- 4. frontend ------------------------------------------------------------
 if [ -d "$ROOT/frontend/node_modules" ]; then
   step "frontend: tsc --noEmit"
   run "tsc" "$ROOT/frontend" npx tsc --noEmit

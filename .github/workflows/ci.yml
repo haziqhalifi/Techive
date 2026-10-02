@@ -86,3 +86,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: docker compose config -q
+
+  # ---------------------------------------------------------------- database
+  # The only job that actually EXECUTES data/schema.sql + data/seed.sql. The backend job can
+  # only check the SQL structurally (it parses both files and guards against drift), because
+  # the local dev machine has no Docker. This is where the durable path is proven to run.
+  db-smoke:
+    name: Postgres (schema + seed)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply schema + seed, assert counts and append-only trigger
+        run: bash scripts/db-smoke.sh

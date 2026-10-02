@@ -1,9 +1,9 @@
 {
-  "name": "harvest-frontend",
+  "name": "verdant-frontend",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "HARVEST console — Vite + React 19 + Tailwind",
+  "description": "VERDANT console — Vite + React 19 + Tailwind",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

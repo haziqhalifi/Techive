@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import { useRole } from "@/hooks/use-role";
-import { ApiError, api } from "@/lib/harvest-api";
+import { ApiError, api } from "@/lib/verdant-api";
 import { humanise } from "@/lib/utils";
 import type {
   ActionTier,
@@ -15,8 +15,8 @@ import type {
   ClaimKind,
   PillDetail,
   PillSummary,
-} from "@/types/harvest";
-import { ACTION_TIERS, ASSET_TYPES, CLAIM_KINDS } from "@/types/harvest";
+} from "@/types/verdant";
+import { ACTION_TIERS, ASSET_TYPES, CLAIM_KINDS } from "@/types/verdant";
 
 type Failure = { message: string; details?: Record<string, unknown> };
 

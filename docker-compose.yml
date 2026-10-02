@@ -1,6 +1,6 @@
-# HARVEST — optional local Postgres + pgvector.
+# VERDANT — optional local Postgres + pgvector.
 #
-# The API does NOT need this. By default HARVEST runs entirely in memory: the world is seeded
+# The API does NOT need this. By default VERDANT runs entirely in memory: the world is seeded
 # from a fixed RNG seed on boot and nothing external is required. This compose file exists to
 # stand up the durable Postgres + pgvector schema in `data/schema.sql` for the production path.
 #
@@ -12,28 +12,28 @@
 #
 # NOTE: this database is not yet read or written by the API. See "Known gaps" in README.md.
 
-name: harvest
+name: verdant
 
 services:
   db:
     image: pgvector/pgvector:pg16
-    container_name: harvest-db
+    container_name: verdant-db
     profiles: ["postgres"]
     environment:
-      POSTGRES_USER: harvest
-      POSTGRES_PASSWORD: harvest
-      POSTGRES_DB: harvest
+      POSTGRES_USER: verdant
+      POSTGRES_PASSWORD: verdant
+      POSTGRES_DB: verdant
     ports:
       # Host 5433 avoids clashing with a locally installed Postgres on 5432.
       - "5433:5432"
     volumes:
-      - harvest_pgdata:/var/lib/postgresql/data
+      - verdant_pgdata:/var/lib/postgresql/data
       - ./data/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U harvest -d harvest"]
+      test: ["CMD-SHELL", "pg_isready -U verdant -d verdant"]
       interval: 5s
       timeout: 5s
       retries: 10
 
 volumes:
-  harvest_pgdata:
+  verdant_pgdata:

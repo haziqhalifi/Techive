@@ -24,9 +24,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useRole } from "@/hooks/use-role";
-import { ApiError, api } from "@/lib/harvest-api";
+import { ApiError, api } from "@/lib/verdant-api";
 import { humanise, sgd } from "@/lib/utils";
-import type { DecisionCard, PillDetail, PillSummary, Site } from "@/types/harvest";
+import type { DecisionCard, PillDetail, PillSummary, Site } from "@/types/verdant";
 
 type Failure = { message: string; details?: Record<string, unknown> };
 

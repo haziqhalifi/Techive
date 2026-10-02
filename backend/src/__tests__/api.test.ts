@@ -30,7 +30,7 @@ describe("HTTP API", () => {
   it("runs the hero case end to end", async () => {
     const response = await request(createApp())
       .post("/api/cases")
-      .set("x-harvest-role", "aom")
+      .set("x-verdant-role", "aom")
       .send(HERO_CASE_INPUT);
 
     expect(response.status).toBe(201);
@@ -44,7 +44,7 @@ describe("HTTP API", () => {
   it("denies the audit log to a site operator", async () => {
     const response = await request(createApp())
       .get("/api/audit")
-      .set("x-harvest-role", "site_operator");
+      .set("x-verdant-role", "site_operator");
 
     expect(response.status).toBe(403);
     expect(response.body.error.code).toBe("forbidden");
@@ -53,7 +53,7 @@ describe("HTTP API", () => {
   it("allows the audit log to a governance admin, with a valid chain", async () => {
     const response = await request(createApp())
       .get("/api/audit")
-      .set("x-harvest-role", "governance_admin");
+      .set("x-verdant-role", "governance_admin");
 
     expect(response.status).toBe(200);
     expect(response.body.verification.valid).toBe(true);
@@ -94,7 +94,7 @@ describe("HTTP API", () => {
   it("returns 422 for an invalid case body", async () => {
     const response = await request(createApp())
       .post("/api/cases")
-      .set("x-harvest-role", "aom")
+      .set("x-verdant-role", "aom")
       .send({ siteId: "site-towerk" });
 
     expect(response.status).toBe(422);
@@ -104,7 +104,7 @@ describe("HTTP API", () => {
   it("returns 404 for an unknown case", async () => {
     const response = await request(createApp())
       .get("/api/cases/case-9999")
-      .set("x-harvest-role", "aom");
+      .set("x-verdant-role", "aom");
 
     expect(response.status).toBe(404);
     expect(response.body.error.code).toBe("not_found");
@@ -115,7 +115,7 @@ describe("HTTP API", () => {
   it("refuses a second seed from a non-admin", async () => {
     const response = await request(createApp())
       .post("/api/seed")
-      .set("x-harvest-role", "site_operator")
+      .set("x-verdant-role", "site_operator")
       .send({});
 
     expect(response.status).toBe(403);
@@ -124,7 +124,7 @@ describe("HTTP API", () => {
   it("allows a governance admin to re-seed", async () => {
     const response = await request(createApp())
       .post("/api/seed")
-      .set("x-harvest-role", "governance_admin")
+      .set("x-verdant-role", "governance_admin")
       .send({});
 
     expect(response.status).toBe(201);

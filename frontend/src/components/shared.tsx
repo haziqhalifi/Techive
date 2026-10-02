@@ -18,8 +18,8 @@ import type {
   Hop,
   PillStatus,
   RouteDecision,
-} from "@/types/harvest";
-import { POLICY_TIER_LABELS } from "@/types/harvest";
+} from "@/types/verdant";
+import { POLICY_TIER_LABELS } from "@/types/verdant";
 
 export function PageHeader({
   title,

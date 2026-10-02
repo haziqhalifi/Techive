@@ -14,10 +14,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useRole } from "@/hooks/use-role";
-import { ApiError, api } from "@/lib/harvest-api";
+import { ApiError, api } from "@/lib/verdant-api";
 import { dateTimeOf, humanise } from "@/lib/utils";
-import type { AuditLogEntry, AuditVerification } from "@/types/harvest";
-import { AUDIT_ACTIONS, AUDIT_ENTITY_TYPES } from "@/types/harvest";
+import type { AuditLogEntry, AuditVerification } from "@/types/verdant";
+import { AUDIT_ACTIONS, AUDIT_ENTITY_TYPES } from "@/types/verdant";
 
 type Failure = { message: string; details?: Record<string, unknown> };
 

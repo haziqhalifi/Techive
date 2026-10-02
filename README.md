@@ -1,4 +1,4 @@
-# HARVEST — Tower K Energy & Comfort Pill
+# VERDANT — Tower K Energy & Comfort Pill
 
 > When Tower K's chief engineer retires, his judgement on cooling and comfort stays —
 > approved, versioned and measurable.
@@ -134,7 +134,7 @@ npm run dev          # http://localhost:5173
 ```bash
 curl -s -X POST http://localhost:8000/api/cases \
   -H "content-type: application/json" \
-  -H "x-harvest-role: aom" \
+  -H "x-verdant-role: aom" \
   -d '{
     "siteId": "site-towerk",
     "floor": 23,
@@ -179,8 +179,8 @@ Access is deny-by-default: an unknown or missing role is rejected. Locally there
 — the caller identifies itself with a header, and every service calls `assertCan`:
 
 ```bash
-curl -s http://localhost:8000/api/audit -H "x-harvest-role: site_operator"     # 403
-curl -s http://localhost:8000/api/audit -H "x-harvest-role: governance_admin"  # 200
+curl -s http://localhost:8000/api/audit -H "x-verdant-role: site_operator"     # 403
+curl -s http://localhost:8000/api/audit -H "x-verdant-role: governance_admin"  # 200
 ```
 
 ---
@@ -254,6 +254,6 @@ scripts/    verify.sh
 
 **All data is synthetic and labelled as such on every screen and export.** No real Keppel or
 personal data is used. The chiller series is generated deterministically from a fixed RNG seed
-(`HARVEST_SEED`, default `20261002`) — `Math.random` is never called anywhere in this codebase, and
+(`VERDANT_SEED`, default `20261002`) — `Math.random` is never called anywhere in this codebase, and
 a test asserts that re-seeding produces a byte-identical world. Public datasets (ASHRAE Great Energy
 Predictor III, BCA) inform realistic baselines only.

@@ -7,7 +7,7 @@
 
 import type { ErrorRequestHandler, RequestHandler } from "express";
 import { ZodError } from "zod";
-import { isHarvestError } from "@/shared/errors";
+import { isVerdantError } from "@/shared/errors";
 
 export const notFoundHandler: RequestHandler = (req, res) => {
   res.status(404).json({
@@ -20,7 +20,7 @@ export const notFoundHandler: RequestHandler = (req, res) => {
 };
 
 export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
-  if (isHarvestError(error)) {
+  if (isVerdantError(error)) {
     res.status(error.status).json({
       error: { code: error.code, message: error.message, details: error.details },
     });

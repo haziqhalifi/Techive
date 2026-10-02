@@ -1,6 +1,6 @@
 # Architecture
 
-HARVEST is a governed **Intelligence Pill** platform. The single most important design rule is
+VERDANT is a governed **Intelligence Pill** platform. The single most important design rule is
 that **numbers and safety never touch the language model**.
 
 ```
@@ -111,7 +111,7 @@ That path is **defined but not wired** — see "Known gaps" in `README.md`.
 ### Determinism
 
 `shared/rng.ts` implements `mulberry32`. **`Math.random` is never called anywhere in this codebase.**
-The whole world derives from `HARVEST_SEED` (default `20261002`), and `shared/store.ts` exposes a
+The whole world derives from `VERDANT_SEED` (default `20261002`), and `shared/store.ts` exposes a
 settable clock (`setClock`) so seeded timestamps are reproducible. A test re-seeds and asserts the
 serialised world is byte-identical.
 
@@ -137,14 +137,14 @@ is exported.
 See the table in `README.md`. The shape of the contract:
 
 - Errors always leave as `{ error: { code, message, details } }`. `middleware/errorHandler.ts` is the
-  single place that renders them; a `ZodError` becomes a 422, a `HarvestError` carries its own status,
+  single place that renders them; a `ZodError` becomes a 422, a `VerdantError` carries its own status,
   and anything else becomes a 500 with no stack trace leaked.
 - Validation happens at the boundary with Zod (`middleware/validation.ts`); services then enforce
   *governance* rules (FR-02, FR-03) that validation cannot express.
 - **Access is deny-by-default.** `modules/governance/roles.ts` holds the role → permission matrix;
   every service calls `assertCan`, so an unrecognised role is denied even if a route forgets to check.
   Locally there is no password flow — `middleware/actor.ts` resolves the caller from
-  `x-harvest-user` or `x-harvest-role`.
+  `x-verdant-user` or `x-verdant-role`.
 
 ## 5. Where to look first
 

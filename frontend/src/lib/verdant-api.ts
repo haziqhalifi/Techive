@@ -1,14 +1,14 @@
 /**
- * The only module that talks to the HARVEST API.
+ * The only module that talks to the VERDANT API.
  *
- * Every request carries `x-harvest-role`, which is how the demo switches hats without a login.
+ * Every request carries `x-verdant-role`, which is how the demo switches hats without a login.
  * The backend is deny-by-default, so a role without the required permission gets a 403 — the
  * console hides what a role cannot do, but never relies on that for safety.
  */
 
 import {
   ROLES,
-} from "@/types/harvest";
+} from "@/types/verdant";
 import type {
   Asset,
   AuditLogEntry,
@@ -33,9 +33,9 @@ import type {
   SeedStatus,
   Site,
   Tenant,
-} from "@/types/harvest";
+} from "@/types/verdant";
 
-export const ROLE_STORAGE_KEY = "harvest.role";
+export const ROLE_STORAGE_KEY = "verdant.role";
 
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined;
 export const BASE_URL = (configuredBaseUrl ?? "http://localhost:8000").replace(/\/+$/, "");
@@ -83,7 +83,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     ...init,
     headers: {
       "content-type": "application/json",
-      "x-harvest-role": currentRole,
+      "x-verdant-role": currentRole,
       ...(init.headers ?? {}),
     },
   });

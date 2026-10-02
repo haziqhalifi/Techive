@@ -9,7 +9,7 @@ const app = createApp();
 
 const server = app.listen(config.port, () => {
   process.stdout.write(
-    `HARVEST API listening on http://localhost:${config.port} (${config.nodeEnv}, seed ${config.seed}, llm ${config.llm.enabled ? "on" : "off"})\n`,
+    `VERDANT API listening on http://localhost:${config.port} (${config.nodeEnv}, seed ${config.seed}, llm ${config.llm.enabled ? "on" : "off"})\n`,
   );
 });
 

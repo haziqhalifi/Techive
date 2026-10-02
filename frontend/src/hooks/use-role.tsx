@@ -2,15 +2,15 @@
  * Role context.
  *
  * The demo has no login. The selected role is persisted to `localStorage`, pushed into the API
- * client so every request carries `x-harvest-role`, and used to hide actions the role cannot
+ * client so every request carries `x-verdant-role`, and used to hide actions the role cannot
  * perform. Hiding is a courtesy — the backend's deny-by-default `assertCan` is the real gate.
  */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
-import { ROLE_STORAGE_KEY, api, getApiRole, setApiRole } from "@/lib/harvest-api";
-import type { Role, RoleInfo } from "@/types/harvest";
+import { ROLE_STORAGE_KEY, api, getApiRole, setApiRole } from "@/lib/verdant-api";
+import type { Role, RoleInfo } from "@/types/verdant";
 
 interface RoleContextValue {
   role: Role;

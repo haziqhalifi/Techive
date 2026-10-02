@@ -27,9 +27,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useRole } from "@/hooks/use-role";
-import { ApiError, api } from "@/lib/harvest-api";
+import { ApiError, api } from "@/lib/verdant-api";
 import { dateTimeOf, humanise, num, sgd } from "@/lib/utils";
-import type { Case, CaseCreatePayload, DecisionCard, MetricsResponse, Site } from "@/types/harvest";
+import type { Case, CaseCreatePayload, DecisionCard, MetricsResponse, Site } from "@/types/verdant";
 
 /** The complaint the PRD is built around. */
 const HERO_CASE: CaseCreatePayload = {

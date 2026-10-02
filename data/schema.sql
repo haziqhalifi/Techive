@@ -1,5 +1,5 @@
 -- =============================================================
--- HARVEST — Tower K Energy & Comfort Pill
+-- VERDANT — Tower K Energy & Comfort Pill
 -- Schema. Auto-applied by docker-compose on first run of an empty volume.
 -- ALL DATA IS SYNTHETIC.
 --

@@ -6,9 +6,9 @@ import { DataNotice } from "@/components/shared";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/field";
 import { useRole } from "@/hooks/use-role";
-import { api } from "@/lib/harvest-api";
+import { api } from "@/lib/verdant-api";
 import { cn } from "@/lib/utils";
-import type { Role, SeedStatus } from "@/types/harvest";
+import type { Role, SeedStatus } from "@/types/verdant";
 
 const NAV = [
   { to: "/", label: "Case console", icon: Activity, end: true },
@@ -45,7 +45,7 @@ export default function Layout() {
     <div className="flex min-h-screen">
       <aside className="hidden w-64 shrink-0 flex-col border-r bg-card lg:flex">
         <div className="border-b px-5 py-5">
-          <div className="text-sm font-semibold tracking-tight">HARVEST</div>
+          <div className="text-sm font-semibold tracking-tight">VERDANT</div>
           <div className="mt-0.5 text-xs text-muted-foreground">
             Tower K Energy &amp; Comfort Pill
           </div>
@@ -99,7 +99,7 @@ export default function Layout() {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-10 border-b bg-card/95 backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
-            <div className="text-sm font-semibold lg:hidden">HARVEST</div>
+            <div className="text-sm font-semibold lg:hidden">VERDANT</div>
 
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">

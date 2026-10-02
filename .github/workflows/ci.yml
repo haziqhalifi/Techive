@@ -18,7 +18,7 @@ jobs:
     env:
       # The demo and CI run with no model. The determinism contract is what is under test.
       LLM_ENABLED: "false"
-      HARVEST_SEED: "20261002"
+      VERDANT_SEED: "20261002"
       NODE_ENV: test
 
     defaults:

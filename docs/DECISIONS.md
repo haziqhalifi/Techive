@@ -113,7 +113,7 @@ version so the capture/revise endpoints can return the draft they just created w
 
 ## ADR-007 — One seed, and `Math.random` is never called
 
-**Decision.** The entire synthetic world derives from `HARVEST_SEED`. `shared/rng.ts` provides
+**Decision.** The entire synthetic world derives from `VERDANT_SEED`. `shared/rng.ts` provides
 `mulberry32` and an `Rng` class; `shared/store.ts` provides a settable clock.
 
 **Why.** Every number in the demo is quoted in a PRD. If the data were random, the hero card would
@@ -154,7 +154,7 @@ not in the route.
 
 **Why.** Validation and governance are different concerns. Zod can say "this string is too long"; it
 cannot say "an author may not approve their own pill". Putting permission checks in services means a
-new route cannot forget one — and a `ZodError` becoming a 422, a `HarvestError` carrying its own
+new route cannot forget one — and a `ZodError` becoming a 422, a `VerdantError` carrying its own
 status, and everything else becoming a stack-trace-free 500 is decided in exactly one function.
 
 **How to apply.** Never `res.status(...).json(...)` an error in a controller — throw. Use

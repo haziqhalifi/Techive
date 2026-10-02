@@ -1,9 +1,9 @@
 {
-  "name": "harvest-backend",
+  "name": "verdant-backend",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "HARVEST — governed Intelligence Pill backend (Express + TypeScript, in-memory store)",
+  "description": "VERDANT — governed Intelligence Pill backend (Express + TypeScript, in-memory store)",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",

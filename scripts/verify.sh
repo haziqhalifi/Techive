@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================
-# HARVEST — single quality gate.
+# VERDANT — single quality gate.
 # Mirrors the AGENTS.md pre-commit checklist in one command.
 #
 #   bash scripts/verify.sh

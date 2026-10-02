@@ -1,7 +1,7 @@
 # Hero case — Level 23 "too hot" during chiller plant drift
 
 One case carries the whole demo. Every number below is derived, not asserted: the chiller series is
-generated deterministically from `HARVEST_SEED` (`backend/src/modules/synthetic/world.dataset.ts`),
+generated deterministically from `VERDANT_SEED` (`backend/src/modules/synthetic/world.dataset.ts`),
 and the figures are computed from that raw telemetry by
 `backend/src/modules/analytics/analytics.service.ts`.
 
@@ -119,6 +119,6 @@ cd backend && npx vitest run src/__tests__/cases.test.ts
 # with the stack running
 cd backend && npm run dev
 curl -s -X POST http://localhost:8000/api/cases \
-  -H "content-type: application/json" -H "x-harvest-role: aom" \
+  -H "content-type: application/json" -H "x-verdant-role: aom" \
   -d '{"siteId":"site-towerk","floor":23,"zone":"North","symptom":"Level 23 is too hot and stuffy at 14:40","description":"Tenant reports 26.5 C against a target of 23 C. Building-wide chiller plant efficiency has drifted from 0.62 to 0.71 kW/RT over the past two weeks."}'
 ```

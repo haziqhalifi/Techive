@@ -26,7 +26,7 @@ export const config = {
     .filter(Boolean),
 
   /** Deterministic seed for the synthetic world. */
-  seed: readInt("HARVEST_SEED", 20261002),
+  seed: readInt("VERDANT_SEED", 20261002),
 
   /**
    * The model's only job is to choose one pill ID. When disabled the pipeline runs with no

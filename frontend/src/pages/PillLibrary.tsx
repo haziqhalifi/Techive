@@ -26,10 +26,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useRole } from "@/hooks/use-role";
-import { ApiError, api } from "@/lib/harvest-api";
+import { ApiError, api } from "@/lib/verdant-api";
 import { dateTimeOf, humanise, num, pct } from "@/lib/utils";
-import type { EvalReport, PillDetail, PillStatus, PillSummary } from "@/types/harvest";
-import { PILL_STATUSES } from "@/types/harvest";
+import type { EvalReport, PillDetail, PillStatus, PillSummary } from "@/types/verdant";
+import { PILL_STATUSES } from "@/types/verdant";
 
 type Failure = { message: string; details?: Record<string, unknown> };
 

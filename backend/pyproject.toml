@@ -1,0 +1,33 @@
+[project]
+name = "harvest-backend"
+version = "0.1.0"
+description = "HARVEST — governed Intelligence Pill backend (synthetic demo data)"
+requires-python = ">=3.13"
+
+# ---------------------------------------------------------------- ruff
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["app", "tests", "evals"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "ASYNC"]
+ignore = [
+  "B008",  # FastAPI Depends() in defaults is idiomatic
+  "E501",  # line length handled by the formatter
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+# ---------------------------------------------------------------- black
+[tool.black]
+line-length = 100
+target-version = ["py313"]
+
+# ---------------------------------------------------------------- pytest
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra"
+filterwarnings = ["ignore::DeprecationWarning"]

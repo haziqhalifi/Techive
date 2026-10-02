@@ -1,0 +1,51 @@
+# HARVEST — local development stack.
+# Runs the pgvector-backed Postgres and the FastAPI backend.
+# The Next.js frontend runs on the host via `npm run dev` for fast iteration.
+#
+#   docker compose up -d db      # database only (schema + seed auto-applied on first run)
+#   docker compose up --build    # db + backend
+#
+# NOTE: initdb scripts in data/ only run when the data volume is EMPTY.
+# After editing data/schema.sql or data/seed.sql, recreate with:
+#   docker compose down -v && docker compose up -d db
+
+name: harvest
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: harvest-db
+    environment:
+      POSTGRES_USER: harvest
+      POSTGRES_PASSWORD: harvest
+      POSTGRES_DB: harvest
+    ports:
+      # Host 5433 avoids clashing with a locally installed Postgres on 5432.
+      - "5433:5432"
+    volumes:
+      - harvest_pgdata:/var/lib/postgresql/data
+      - ./data/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./data/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U harvest -d harvest"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: harvest-backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://harvest:harvest@db:5432/harvest
+      LLM_ENABLED: "false"
+      CORS_ORIGINS: http://localhost:3000
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  harvest_pgdata:

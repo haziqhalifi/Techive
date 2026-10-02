@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------- data integrity
+  data-determinism:
+    name: Data generator is deterministic
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Regenerate synthetic data
+        run: python data/generate_synthetic.py
+      - name: Fail if the committed seed differs from a fresh run
+        run: git diff --exit-code -- data/
+
+  # ---------------------------------------------------------------- backend
+  backend:
+    name: Backend (lint, test, gate eval)
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: harvest
+          POSTGRES_PASSWORD: harvest
+          POSTGRES_DB: harvest
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U harvest -d harvest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://harvest:harvest@localhost:5433/harvest
+      LLM_ENABLED: "false"
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Install psql client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+
+      - name: Apply schema and seed
+        env:
+          PGPASSWORD: harvest
+        run: |
+          psql -h localhost -p 5433 -U harvest -d harvest -v ON_ERROR_STOP=1 -f ../data/schema.sql
+          psql -h localhost -p 5433 -U harvest -d harvest -v ON_ERROR_STOP=1 -f ../data/seed.sql
+
+      - name: Ruff
+        run: python -m ruff check .
+
+      - name: Pytest
+        run: python -m pytest -q
+
+      - name: Red-flag gate eval (must be 100%)
+        run: python -m evals.redflag_eval
+
+      - name: Verify the audit table rejects mutation
+        env:
+          PGPASSWORD: harvest
+        run: |
+          psql -h localhost -p 5433 -U harvest -d harvest -v ON_ERROR_STOP=0 -c \
+            "UPDATE audit_logs SET action = 'view';" 2>&1 | tee /tmp/audit_mutation.txt
+          grep -q "append-only" /tmp/audit_mutation.txt
+
+  # ---------------------------------------------------------------- frontend
+  frontend:
+    name: Frontend (typecheck, lint, build)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    env:
+      API_BASE_URL: http://localhost:8000
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+  # ---------------------------------------------------------------- compose
+  compose-config:
+    name: Validate docker-compose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config -q

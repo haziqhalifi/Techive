@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 25% 12%;
+
+    --muted: 210 16% 94%;
+    --muted-foreground: 215 14% 42%;
+
+    --border: 214 18% 88%;
+    --input: 214 18% 88%;
+    --ring: 199 89% 42%;
+
+    --primary: 199 89% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    --accent: 172 55% 38%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 55% 34%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 35 92% 46%;
+    --warning-foreground: 30 40% 12%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply tracking-tight;
+  }
+}
+
+@layer components {
+  /* Shown on every screen: all data in this demo is synthetic. */
+  .synthetic-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-warning/40
+      bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning-foreground;
+  }
+}

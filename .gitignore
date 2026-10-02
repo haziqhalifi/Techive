@@ -5,25 +5,16 @@
 .env.production
 .env.staging
 
-# ---- Python ----
-__pycache__/
-*.py[cod]
-*.egg-info/
-.venv/
-venv/
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-htmlcov/
-.coverage
-
-# ---- Node / Next.js ----
+# ---- Node ----
 node_modules/
-.next/
-out/
+dist/
+dist-ssr/
 .turbo/
 *.tsbuildinfo
-next-env.d.ts
+.vite/
+
+# ---- Test / coverage ----
+coverage/
 
 # ---- Docker / local data ----
 pgdata/

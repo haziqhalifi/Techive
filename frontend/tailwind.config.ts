@@ -1,25 +1,29 @@
 import type { Config } from "tailwindcss";
 
-const config: Config = {
-  darkMode: ["class"],
-  // The app lives under src/, so this glob is required for any styling to apply.
-  content: ["./src/**/*.{ts,tsx}"],
+/**
+ * Tailwind v3.
+ *
+ * The `content` globs must cover `./src/**` — the app lives under `src/`, and a wrong glob
+ * renders an unstyled page with no error, which is a genuinely confusing failure mode.
+ */
+export default {
+  content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -42,16 +46,14 @@ const config: Config = {
         },
       },
       borderRadius: {
-        lg: "0.6rem",
-        md: "0.45rem",
-        sm: "0.3rem",
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
       },
     },
   },
   plugins: [],
-};
-
-export default config;
+} satisfies Config;

@@ -5,8 +5,10 @@
 #
 #   bash scripts/verify.sh
 #
-# Runs: compose config -> ruff -> pytest -> red-flag eval
-#       -> tsc --noEmit -> eslint -> next build
+# Backend:  tsc --noEmit -> eslint -> vitest run
+# Frontend: tsc --noEmit -> eslint -> vite build
+#
+# Both are skipped with a clear message if dependencies are not installed yet.
 # =============================================================
 set -uo pipefail
 
@@ -16,6 +18,7 @@ FAIL=0
 step() { printf '\n\033[1m▶ %s\033[0m\n' "$1"; }
 ok()   { printf '\033[32m✔ %s\033[0m\n' "$1"; }
 bad()  { printf '\033[31m✖ %s\033[0m\n' "$1"; FAIL=1; }
+skip() { printf '\033[33m• %s\033[0m\n' "$1"; }
 
 run() { # run <label> <workdir> <command...>
   local label="$1" dir="$2"; shift 2
@@ -27,20 +30,17 @@ step "docker compose config"
 run "compose config valid" "$ROOT" docker compose config -q
 
 # --- 2. backend -------------------------------------------------------------
-PY="$ROOT/backend/.venv/Scripts/python.exe"
-[ -x "$PY" ] || PY="$ROOT/backend/.venv/bin/python"
+if [ -d "$ROOT/backend/node_modules" ]; then
+  step "backend: tsc --noEmit"
+  run "tsc" "$ROOT/backend" npx tsc --noEmit
 
-if [ -x "$PY" ]; then
-  step "backend: ruff"
-  run "ruff check" "$ROOT/backend" "$PY" -m ruff check .
+  step "backend: eslint"
+  run "eslint" "$ROOT/backend" npx eslint .
 
-  step "backend: pytest"
-  run "pytest" "$ROOT/backend" "$PY" -m pytest -q
-
-  step "backend: red-flag gate eval"
-  run "red-flag eval (100% required)" "$ROOT/backend" "$PY" -m evals.redflag_eval
+  step "backend: vitest"
+  run "vitest" "$ROOT/backend" npx vitest run
 else
-  bad "backend venv not found — run: cd backend && python -m venv .venv && python -m pip install -r requirements.txt -r requirements-dev.txt"
+  skip "backend/node_modules missing — run: cd backend && npm install"
 fi
 
 # --- 3. frontend ------------------------------------------------------------
@@ -49,12 +49,14 @@ if [ -d "$ROOT/frontend/node_modules" ]; then
   run "tsc" "$ROOT/frontend" npx tsc --noEmit
 
   step "frontend: eslint"
-  run "eslint" "$ROOT/frontend" npm run lint
+  run "eslint" "$ROOT/frontend" npx eslint .
 
-  step "frontend: next build"
-  run "next build" "$ROOT/frontend" npm run build
+  step "frontend: vite build"
+  run "vite build" "$ROOT/frontend" npm run build
+elif [ -d "$ROOT/frontend" ]; then
+  skip "frontend/node_modules missing — run: cd frontend && npm install"
 else
-  bad "frontend node_modules not found — run: cd frontend && npm install"
+  skip "frontend/ not present yet"
 fi
 
 # --- result -----------------------------------------------------------------

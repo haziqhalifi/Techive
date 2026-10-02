@@ -10,43 +10,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ---------------------------------------------------------------- data integrity
-  data-determinism:
-    name: Data generator is deterministic
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      - name: Regenerate synthetic data
-        run: python data/generate_synthetic.py
-      - name: Fail if the committed seed differs from a fresh run
-        run: git diff --exit-code -- data/
-
   # ---------------------------------------------------------------- backend
   backend:
-    name: Backend (lint, test, gate eval)
+    name: Backend (typecheck, lint, test)
     runs-on: ubuntu-latest
 
-    services:
-      db:
-        image: pgvector/pgvector:pg16
-        env:
-          POSTGRES_USER: harvest
-          POSTGRES_PASSWORD: harvest
-          POSTGRES_DB: harvest
-        ports:
-          - 5433:5432
-        options: >-
-          --health-cmd "pg_isready -U harvest -d harvest"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
     env:
-      DATABASE_URL: postgresql+asyncpg://harvest:harvest@localhost:5433/harvest
+      # The demo and CI run with no model. The determinism contract is what is under test.
       LLM_ENABLED: "false"
+      HARVEST_SEED: "20261002"
+      NODE_ENV: test
 
     defaults:
       run:
@@ -55,41 +28,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-node@v4
         with:
-          python-version: "3.13"
-          cache: pip
-          cache-dependency-path: backend/requirements*.txt
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
-        run: python -m pip install -r requirements.txt -r requirements-dev.txt
+        run: npm ci
 
-      - name: Install psql client
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Type check
+        run: npx tsc --noEmit
 
-      - name: Apply schema and seed
-        env:
-          PGPASSWORD: harvest
-        run: |
-          psql -h localhost -p 5433 -U harvest -d harvest -v ON_ERROR_STOP=1 -f ../data/schema.sql
-          psql -h localhost -p 5433 -U harvest -d harvest -v ON_ERROR_STOP=1 -f ../data/seed.sql
+      - name: Lint
+        run: npx eslint .
 
-      - name: Ruff
-        run: python -m ruff check .
-
-      - name: Pytest
-        run: python -m pytest -q
-
-      - name: Red-flag gate eval (must be 100%)
-        run: python -m evals.redflag_eval
-
-      - name: Verify the audit table rejects mutation
-        env:
-          PGPASSWORD: harvest
-        run: |
-          psql -h localhost -p 5433 -U harvest -d harvest -v ON_ERROR_STOP=0 -c \
-            "UPDATE audit_logs SET action = 'view';" 2>&1 | tee /tmp/audit_mutation.txt
-          grep -q "append-only" /tmp/audit_mutation.txt
+      - name: Test (includes gate recall, audit chain, determinism, eval)
+        run: npx vitest run
 
   # ---------------------------------------------------------------- frontend
   frontend:
@@ -101,8 +56,7 @@ jobs:
         working-directory: frontend
 
     env:
-      API_BASE_URL: http://localhost:8000
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+      VITE_API_BASE_URL: http://localhost:8000
 
     steps:
       - uses: actions/checkout@v4
@@ -120,7 +74,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Lint
-        run: npm run lint
+        run: npx eslint .
 
       - name: Build
         run: npm run build

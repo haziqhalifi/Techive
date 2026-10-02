@@ -1,13 +1,16 @@
-# HARVEST — local development stack.
-# Runs the pgvector-backed Postgres and the FastAPI backend.
-# The Next.js frontend runs on the host via `npm run dev` for fast iteration.
+# HARVEST — optional local Postgres + pgvector.
 #
-#   docker compose up -d db      # database only (schema + seed auto-applied on first run)
-#   docker compose up --build    # db + backend
+# The API does NOT need this. By default HARVEST runs entirely in memory: the world is seeded
+# from a fixed RNG seed on boot and nothing external is required. This compose file exists to
+# stand up the durable Postgres + pgvector schema in `data/schema.sql` for the production path.
 #
-# NOTE: initdb scripts in data/ only run when the data volume is EMPTY.
-# After editing data/schema.sql or data/seed.sql, recreate with:
-#   docker compose down -v && docker compose up -d db
+#   docker compose --profile postgres up -d db
+#   docker compose --profile postgres down -v      # wipe the volume
+#
+# The schema is applied only when the data volume is EMPTY. After editing data/schema.sql:
+#   docker compose --profile postgres down -v && docker compose --profile postgres up -d db
+#
+# NOTE: this database is not yet read or written by the API. See "Known gaps" in README.md.
 
 name: harvest
 
@@ -15,6 +18,7 @@ services:
   db:
     image: pgvector/pgvector:pg16
     container_name: harvest-db
+    profiles: ["postgres"]
     environment:
       POSTGRES_USER: harvest
       POSTGRES_PASSWORD: harvest
@@ -25,27 +29,11 @@ services:
     volumes:
       - harvest_pgdata:/var/lib/postgresql/data
       - ./data/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-      - ./data/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U harvest -d harvest"]
       interval: 5s
       timeout: 5s
       retries: 10
-
-  backend:
-    build:
-      context: ./backend
-    container_name: harvest-backend
-    environment:
-      DATABASE_URL: postgresql+asyncpg://harvest:harvest@db:5432/harvest
-      LLM_ENABLED: "false"
-      CORS_ORIGINS: http://localhost:3000
-      LOG_LEVEL: INFO
-    ports:
-      - "8000:8000"
-    depends_on:
-      db:
-        condition: service_healthy
 
 volumes:
   harvest_pgdata:

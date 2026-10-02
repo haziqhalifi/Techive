@@ -238,12 +238,28 @@ export default function AuditLog() {
                       className="cursor-pointer"
                       onClick={() => setExpanded(isOpen ? null : entry.id)}
                     >
-                      <TableCell>
-                        {isOpen ? (
-                          <ChevronDown className="h-4 w-4 text-muted-foreground" aria-hidden />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden />
-                        )}
+                      <TableCell className="p-0">
+                        {/* The row click is a pointer affordance; this button is the
+                            keyboard-accessible control and carries the accessible name. */}
+                        <button
+                          type="button"
+                          aria-expanded={isOpen}
+                          aria-controls={`audit-detail-${entry.id}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setExpanded(isOpen ? null : entry.id);
+                          }}
+                          className="flex h-full w-full items-center justify-center p-2 text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                        >
+                          <span className="sr-only">
+                            {isOpen ? "Hide" : "Show"} details for audit entry {entry.seq}
+                          </span>
+                          {isOpen ? (
+                            <ChevronDown className="h-4 w-4" aria-hidden />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" aria-hidden />
+                          )}
+                        </button>
                       </TableCell>
                       <TableCell className="tabular text-right text-xs">{entry.seq}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">
@@ -270,7 +286,7 @@ export default function AuditLog() {
                     </TableRow>
 
                     {isOpen && (
-                      <TableRow>
+                      <TableRow id={`audit-detail-${entry.id}`}>
                         <TableCell colSpan={7} className="bg-muted/40">
                           <div className="grid gap-4 lg:grid-cols-2">
                             <div>

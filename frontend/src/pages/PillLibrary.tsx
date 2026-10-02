@@ -308,11 +308,23 @@ export default function PillLibrary() {
                         onClick={() => setSelectedId(summary.pill.id)}
                         className={`cursor-pointer ${isOpen ? "bg-accent/60" : ""}`}
                       >
-                        <TableCell>
-                          <div className="font-medium">{summary.pill.title}</div>
-                          <div className="mt-0.5 font-mono text-xs text-muted-foreground">
-                            {summary.pill.slug}
-                          </div>
+                        <TableCell className="p-0">
+                          {/* The row click is a pointer affordance; this button is the
+                              keyboard-accessible control for selecting the pill. */}
+                          <button
+                            type="button"
+                            aria-current={isOpen ? "true" : undefined}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedId(summary.pill.id);
+                            }}
+                            className="block w-full px-3 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                          >
+                            <span className="block font-medium">{summary.pill.title}</span>
+                            <span className="mt-0.5 block font-mono text-xs text-muted-foreground">
+                              {summary.pill.slug}
+                            </span>
+                          </button>
                         </TableCell>
                         <TableCell>
                           {summary.version !== null ? (
